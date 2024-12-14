@@ -22,12 +22,12 @@ jobs:
         run: |
           echo Downloading and setting up ngrok...
           Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
-          tar -xf ngrok.zip -C .
+          Expand-Archive -Path ngrok.zip -DestinationPath .  # استخدم Expand-Archive بدلاً من tar لاستخراج ملف ZIP
           ./ngrok authtoken 2V4ZVr5efWMydD5SRyvxg48Q73t_25NK2LtPxxtDFsMxQzjv6
 
       - name: Enable RDP and Configure Firewall
         run: |
-          echo Enabling Remote Desktop Protocol (RDP)...
+          echo Enabling Remote Desktop Protocol...
           reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
           echo Allowing RDP through Windows Firewall...
           netsh advfirewall firewall set rule group="remote desktop" new enable=yes
@@ -42,12 +42,6 @@ jobs:
         run: |
           echo Your RDP public address:
           type ngrok.log | findstr "tcp://"
-
-      - name: Test Network Speed
-        run: |
-          echo Testing network speed...
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py" -OutFile "speedtest.py"
-          python speedtest.py
 
       - name: Long Running Process (Keep Alive)
         run: |
