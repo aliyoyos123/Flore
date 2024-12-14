@@ -38,11 +38,11 @@ jobs:
         run: |
           echo Starting ngrok tunnel for RDP...
           Start-Process -NoNewWindow -FilePath "./ngrok" -ArgumentList "tcp", "3389" -RedirectStandardOutput "ngrok.log" -RedirectStandardError "ngrok_error.log"
-
-      - name: Wait for Ngrok to start
+          
+      - name: Wait for Ngrok to establish the tunnel
         run: |
           echo Waiting for ngrok to establish the tunnel...
-          Start-Sleep -Seconds 10  # إضافة تأخير بسيط للسماح لـ ngrok بإنشاء السجل
+          Start-Sleep -Seconds 30  # تأخير إضافي للسماح لـ ngrok بإنشاء النفق
 
       - name: Show Ngrok Public URL
         run: |
