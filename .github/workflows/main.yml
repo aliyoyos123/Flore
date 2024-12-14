@@ -1,44 +1,50 @@
-name: Windows - Enable RDP with ngrok
+name: Enhanced Windows RDP Environment
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Start Building...
-
+  setup-windows:
+    name: Setup Windows RDP
     runs-on: windows-latest
-
     timeout-minutes: 9999
 
     steps:
-      - name: Downloading & Installing Essentials
+      - name: Check System Specs
         run: |
-          Invoke-Webrequest -Uri "https://gitlab.com/chamod2/lm_win-10_github_rdp/-/raw/main/Downloads.bat" -OutFile "Downloads.bat"
-          cmd /c Downloads.bat
+          echo Checking system specs...
+          systeminfo | findstr /C:"Total Physical Memory"
+          systeminfo | findstr /C:"Available Physical Memory"
+          echo CPU Information:
+          wmic cpu get name
 
-      - name: Enable Remote Desktop
+      - name: Install Ngrok
         run: |
-          # Enable RDP Service
-          Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
-          
-          # Allow RDP Through Firewall
+          echo Downloading and setting up ngrok...
+          Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
+          tar -xf ngrok.zip -C .
+          ./ngrok authtoken 2V4ZVr5efWMydD5SRyvxg48Q73t_25NK2LtPxxtDFsMxQzjv6
+
+      - name: Start RDP
+        run: |
+          echo Enabling Remote Desktop Protocol (RDP)...
+          reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
           netsh advfirewall firewall set rule group="remote desktop" new enable=yes
+          echo Starting ngrok tunnel for RDP...
+          ./ngrok tcp 3389 > ngrok.log &
 
-          # Start RDP Service
-          Start-Service -Name TermService
-
-      - name: Download and Setup ngrok
+      - name: Show Ngrok Public URL
         run: |
-          Invoke-Webrequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-windows-amd64.zip" -OutFile "ngrok.zip"
-          Expand-Archive ngrok.zip -DestinationPath .
-          ./ngrok.exe authtoken <2V4ZVr5efWMydD5SRyvxg48Q73t_25NK2LtPxxtDFsMxQzjv6>
-          Start-Process -FilePath "./ngrok.exe" -ArgumentList "tcp 3389" -NoNewWindow -PassThru
+          echo Your RDP public address:
+          type ngrok.log | findstr "tcp://"
 
-      - name: Display ngrok Public Address
+      - name: Test Network Speed
         run: |
-          ./ngrok.exe tcp 3389 > ngrok-log.txt
-          type ngrok-log.txt
+          echo Testing network speed...
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py" -OutFile "speedtest.py"
+          python speedtest.py
 
-      - name: Time Counter
-        run: cmd /c loop.bat
+      - name: Long Running Process (Keep Alive)
+        run: |
+          echo Running keep-alive loop...
+          for /l %x in (0, 1, 999999) do (echo Keep alive... & timeout /t 300)
