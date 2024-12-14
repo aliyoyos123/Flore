@@ -1,0 +1,44 @@
+name: Windows - Enable RDP with ngrok
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Start Building...
+
+    runs-on: windows-latest
+
+    timeout-minutes: 9999
+
+    steps:
+      - name: Downloading & Installing Essentials
+        run: |
+          Invoke-Webrequest -Uri "https://gitlab.com/chamod2/lm_win-10_github_rdp/-/raw/main/Downloads.bat" -OutFile "Downloads.bat"
+          cmd /c Downloads.bat
+
+      - name: Enable Remote Desktop
+        run: |
+          # Enable RDP Service
+          Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
+          
+          # Allow RDP Through Firewall
+          netsh advfirewall firewall set rule group="remote desktop" new enable=yes
+
+          # Start RDP Service
+          Start-Service -Name TermService
+
+      - name: Download and Setup ngrok
+        run: |
+          Invoke-Webrequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-windows-amd64.zip" -OutFile "ngrok.zip"
+          Expand-Archive ngrok.zip -DestinationPath .
+          ./ngrok.exe authtoken <2V4ZVr5efWMydD5SRyvxg48Q73t_25NK2LtPxxtDFsMxQzjv6>
+          Start-Process -FilePath "./ngrok.exe" -ArgumentList "tcp 3389" -NoNewWindow -PassThru
+
+      - name: Display ngrok Public Address
+        run: |
+          ./ngrok.exe tcp 3389 > ngrok-log.txt
+          type ngrok-log.txt
+
+      - name: Time Counter
+        run: cmd /c loop.bat
