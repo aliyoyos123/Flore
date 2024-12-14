@@ -23,7 +23,8 @@ jobs:
           echo Downloading and setting up ngrok...
           Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
           Expand-Archive -Path ngrok.zip -DestinationPath .  # استخدم Expand-Archive بدلاً من tar لاستخراج ملف ZIP
-          ./ngrok authtoken 2V4ZVr5efWMydD5SRyvxg48Q73t_25NK2LtPxxtDFsMxQzjv6
+          echo Adding ngrok authtoken...
+          .\ngrok config add-authtoken 2V4ZVr5efWMydD5SRyvxg48Q73t_25NK2LtPxxtDFsMxQzjv6
 
       - name: Enable RDP and Configure Firewall
         run: |
