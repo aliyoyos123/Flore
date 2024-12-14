@@ -36,7 +36,7 @@ jobs:
       - name: Start Ngrok for RDP
         run: |
           echo Starting ngrok tunnel for RDP...
-          Start-Process -NoNewWindow -FilePath "./ngrok" -ArgumentList "tcp", "3389" -RedirectStandardOutput "ngrok.log" -RedirectStandardError "ngrok.log"
+          Start-Process -NoNewWindow -FilePath "./ngrok" -ArgumentList "tcp", "3389" -RedirectStandardOutput "ngrok.log" -RedirectStandardError "ngrok_error.log"
 
       - name: Wait for Ngrok to start
         run: |
