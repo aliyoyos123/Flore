@@ -25,11 +25,16 @@ jobs:
           tar -xf ngrok.zip -C .
           ./ngrok authtoken 2V4ZVr5efWMydD5SRyvxg48Q73t_25NK2LtPxxtDFsMxQzjv6
 
-      - name: Start RDP
+      - name: Enable RDP and Configure Firewall
         run: |
           echo Enabling Remote Desktop Protocol (RDP)...
           reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+          echo Allowing RDP through Windows Firewall...
           netsh advfirewall firewall set rule group="remote desktop" new enable=yes
+          echo Remote Desktop Protocol enabled successfully.
+
+      - name: Start Ngrok for RDP
+        run: |
           echo Starting ngrok tunnel for RDP...
           ./ngrok tcp 3389 > ngrok.log &
 
